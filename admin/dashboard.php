@@ -1,3 +1,70 @@
+<?php
+include '../config/connection.php';
+include '../session1.php';
+
+
+date_default_timezone_set('Asia/Manila');
+$date = date('Y-m-d');
+
+$year =  date('Y');
+$month =  date('m');
+
+$queryToday = "SELECT count(*) as `today` 
+  from `bus` 
+  where `date_departure` = '$date';";
+
+$queryWeek = "SELECT count(*) as `week` 
+  from `bus` 
+  where YEARWEEK(`date_departure`) = YEARWEEK('$date');";
+
+$queryYear = "SELECT count(*) as `year` 
+  from `bus` 
+  where YEAR(`date_departure`) = YEAR('$date');";
+
+$queryMonth = "SELECT count(*) as `month` 
+  from `bus` 
+  where YEAR(`date_departure`) = $year and 
+  MONTH(`date_departure`) = $month;";
+
+$todaysCount = 0;
+$currentWeekCount = 0;
+$currentMonthCount = 0;
+$currentYearCount = 0;
+
+
+try {
+
+    $stmtToday = $con->prepare($queryToday);
+    $stmtToday->execute();
+    $r = $stmtToday->fetch(PDO::FETCH_ASSOC);
+    $todaysCount = $r['today'];
+
+    $stmtWeek = $con->prepare($queryWeek);
+    $stmtWeek->execute();
+    $r = $stmtWeek->fetch(PDO::FETCH_ASSOC);
+    $currentWeekCount = $r['week'];
+
+    $stmtYear = $con->prepare($queryYear);
+    $stmtYear->execute();
+    $r = $stmtYear->fetch(PDO::FETCH_ASSOC);
+    $currentYearCount = $r['year'];
+
+    $stmtMonth = $con->prepare($queryMonth);
+    $stmtMonth->execute();
+    $r = $stmtMonth->fetch(PDO::FETCH_ASSOC);
+    $currentMonthCount = $r['month'];
+
+} catch(PDOException $ex) {
+    echo $ex->getMessage();
+    echo $ex->getTraceAsString();
+    exit;
+}
+
+
+
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,6 +76,8 @@
   <link rel="stylesheet" href="../style/bootstrap-5.3.2-dist/css/line-awesome.min.css">
   <link rel="stylesheet" href="../style/bootstrap-5.3.2-dist/css/select2.min.css">
   <link rel="stylesheet" href="../style/morris/morris.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
   <title>Document</title>
 </head>
 <body>
@@ -16,11 +85,11 @@
   <div class="main-wrapper">
 		
     <!-- Header -->
-          <?php include_once("./components/header.php");?>
+          <?php include_once("components/header.php");?>
     <!-- /Header -->
     
     <!-- Sidebar -->
-          <?php include_once("./components/sidebar.php");?>
+          <?php include_once("components/sidebar.php");?>
     <!-- /Sidebar -->
     
     <!-- Page Wrapper -->
@@ -43,7 +112,7 @@
         </div>
         <!-- /Page Header -->
         <section class="content">
-            <div class="container-fluid">
+        <div class="container-fluid">
                 <!-- Small boxes (Stat box) -->
                 <div class="row">
                     <div class="col-lg-3 col-6">
@@ -52,7 +121,7 @@
                             <div class="inner">
                                 <h3><?php echo $todaysCount;?></h3>
 
-                                <p>Today's Reserve</p>
+                                <p>Today's Ticket</p>
                             </div>
                             <div class="icon">
                                 <i class="fa fa-calendar-day"></i>
@@ -113,22 +182,12 @@
     <!-- /Page Wrapper -->
     
       </div>
-  <!-- /Main Wrapper -->
   
-  <!-- jQuery -->
       <script src="../style/bootstrap-5.3.2-dist/js/jquery-3.2.1.min.js"></script>
-  
-  <!-- Bootstrap Core JS -->
       <script src="../style/bootstrap-5.3.2-dist/js/popper.min.js"></script>
       <script src="../style/bootstrap-5.3.2-dist/js/bootstrap.bundle.js"></script>
-  
-  <!-- Slimscroll JS -->
   <script src="../style/bootstrap-5.3.2-dist/js/jquery.slimscroll.min.js"></script>
-  
-  <!-- Select2 JS -->
   <script src="../style/morris/morris.min.js"></script>
-  
-  <!-- Custom JS -->
   <script src="../style/bootstrap-5.3.2-dist/js/nav.js"></script>
   
 </body>

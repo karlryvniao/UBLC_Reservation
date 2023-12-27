@@ -1,3 +1,12 @@
+<style>
+	a {
+  text-decoration: none !important;
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha384-Zz1TI7qqu+K5SslEvopUc1fSmm9PoX0GpRPUD9LxYzDF0OM0+Ue8YMaI5xjo5oq0" crossorigin="anonymous">
+
+
 <div class="sidebar" id="sidebar">
                 <div class="sidebar-inner slimscroll">
 					<div id="sidebar-menu" class="sidebar-menu">
@@ -5,42 +14,35 @@
 							<li class="menu-title"> 
 								<span>Main</span>
 							</li>
-							<li class="submenu">
-								<a href="#"><i class="la la-dashboard"></i> <span> Dashboard</span> <span class="menu-arrow"></span></a>
-								<ul style="display: none;">
-									<li><a href="dashboard.php">Admin Dashboard</a></li>
-									<li><a href="employee-dashboard.php">Employee Dashboard</a></li>
-								</ul>
+							<li>
+								<a href="dashboard.php"><i class="fa fa-tachometer-alt"></i><span>Dashboard</span></a>
 							</li>
 							
+							
 							<li class="menu-title"> 
-								<span>Employees</span>
-							</li>
-							<li class="submenu">
-								<a href="#" class="noti-dot"><i class="la la-user"></i> <span> Employees</span> <span class="menu-arrow"></span></a>
-								<ul style="display: none;">
-									<li><a href="employees.php">All Employees</a></li>
-									<li><a href="holidays.php">Holidays</a></li>
-									<li><a href="leaves-employee.php">Employee Leave</a></li>
-									<li><a href="departments.php">Departments</a></li>
-									<li><a href="designations.php">Designations</a></li>
-									<li><a href="timesheet.php">Timesheet</a></li>
-									<li><a href="overtime.php">Overtime</a></li>
-								</ul>
+								<span>Tickets</span>
 							</li>
 							<li>
-								<a href="ticket.php"><i class="la la-users"></i> <span>Trip Ticket Request</span></a>
+								<a href="ticket.php"><i class="fa fa-ticket-alt"></i><span>Trip Ticket Request</span></a>
 							</li>
+							<li class="submenu">
+								<a href="#" ><i class="fa fa-list-alt"></i> <span> Finalize</span> <span class="menu-arrow"></span></a>
+								<ul style="display: none;">
+									<li><a href="approveRequest.php"><span>Approved Request</span></a></li>
+									<li><a href="cancelRequest.php"><span>Cancelled Request</span></a></li>
+								</ul>
+							</li>
+
 							
 							<li class="menu-title">
 								
 								<span>Pages</span>
 							</li>
 							<li>
-								<a href="settings.php"><i class="la la-cogs"></i> <span>Settings</span></a>
+								<a href="users.php"><i class="fa fa-users"></i> <span>Users</span></a>
 							</li>
 							<li>
-								<a href="logout.php"><i class="la la-power-off"></i> <span>Logout</span></a>
+								<a href="/UBLC-Reservation/logout.php"><i class="fa fa-power-off"></i> <span>Logout</span></a>
 							</li>
 									
 						</ul>

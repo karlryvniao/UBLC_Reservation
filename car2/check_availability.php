@@ -1,20 +1,20 @@
 <?php
 // Include database connection or any necessary setup
-include './config/connection.php';
+include '../config/connection.php';
 
 // Get parameters from the AJAX request
-$busNumber = $_GET['bus'];
+$serviceNumber = $_GET['service'];
 $dateDeparture = $_GET['date_departure'];
 $timeDeparture = $_GET['time_departure'];
 $dateArrival = $_GET['exp_arrival'];
 $timeArrival = $_GET['time_arrival'];
 
 // Check for existing reservations for the selected bus, date, and time range
-$checkQuery = "SELECT COUNT(*) as count FROM bus
-            WHERE bus = :bus
+$checkQuery = "SELECT COUNT(*) as count FROM service2
+            WHERE service = :service
             AND NOT ((date_departure > :returning_date) OR (exp_arrival < :date_departure) OR (time_departure > :time_arrival) OR (time_arrival < :time_departure))";
 $checkStmt = $con->prepare($checkQuery);
-$checkStmt->bindParam(':bus', $busNumber);
+$checkStmt->bindParam(':service', $serviceNumber);
 $checkStmt->bindParam(':date_departure', $dateDeparture);
 $checkStmt->bindParam(':time_departure', $timeDeparture);
 $checkStmt->bindParam(':returning_date', $dateArrival);
