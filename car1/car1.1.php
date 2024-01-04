@@ -1,6 +1,5 @@
 <?php
 include '../config/connection.php';
-include '../session1.php';
 
 $message = '';
 if(isset($_POST['submit'])) {
@@ -15,13 +14,10 @@ if(isset($_POST['submit'])) {
     $Passengers = $_POST['passengers'];
     $Purpose = $_POST['purpose'];
     $DestName = $_POST['destination_name'];
-    $Status = $_POST['status'];
-    $sessionName = $_SESSION['session_name'];
-    
 
     //Selecting Bus
-    $SelectedBus = isset($_POST['service']) ? $_POST['service'] : [];
-    $BusesString = implode(", ", $SelectedBus);
+    $SelectedBus = isset($_POST['bus']) ? $_POST['bus'] : [];
+    $BusString = implode(", ", $SelectedBus);
 
     //Selecting passenger name
     $passengerNames = $_POST['passengerNames']; // This is now an array
@@ -31,7 +27,7 @@ if(isset($_POST['submit'])) {
 
     // File handling (assuming 'template_name' is the name attribute of the file input)
     $approvalFile = $_FILES["template_name"]["name"];
-    $uploadDir = "approval_file/"; // Specify the directory where you want to store uploaded files
+    $uploadDir = "../approval_file/"; // Specify the directory where you want to store uploaded files
     $targetFile = $uploadDir . basename($_FILES["template_name"]["name"]);
 
    // Move the uploaded file to the specified directory
@@ -65,15 +61,15 @@ if(isset($_POST['submit'])) {
     } else {
     $stmt = $con->prepare("INSERT INTO bus (name, department, pass_name, location, bus,
     date_departure, time_departure, exp_arrival, time_arrival, passengers, purpose, destination_name,
-    file_name, status, userId) VALUES (:name, :department, :pass_name, :location, :bus,
+    file_name) VALUES (:name, :department, :pass_name, :location, :bus,
     :date_departure, :time_departure, :exp_arrival, :time_arrival, :passengers, :purpose, :destination_name,
-    :file_name, :status, :session_name)");
+    :file_name)");
 
     $stmt->bindParam(':name', $name);
     $stmt->bindParam(':department', $department);
     $stmt->bindParam(':pass_name', $passengerNamesString);
     $stmt->bindParam(':location', $loc);
-    $stmt->bindParam(':bus', $BusesString);
+    $stmt->bindParam(':bus', $BusString);
     $stmt->bindParam(':date_departure', $DateDeparture);
     $stmt->bindParam(':time_departure', $TimeDeparture);
     $stmt->bindParam(':exp_arrival', $DateArrival);
@@ -82,15 +78,13 @@ if(isset($_POST['submit'])) {
     $stmt->bindParam(':purpose', $Purpose);
     $stmt->bindParam(':destination_name', $DestName);
     $stmt->bindParam(':file_name', $targetFile);
-    $stmt->bindParam(':status', $Status);
-    
     
     // Execute the query
     $stmt->execute();
 
     // Redirect to a success page or do something else
     $message = "Reservation successful!";
-    header("Location: ../home.php");
+    header("Location: ../congratulation.php?goto_page=car1.php&message=$message");
     exit;
 }
 }
@@ -155,7 +149,6 @@ if(isset($_POST['submit'])) {
                 <h5>Pick a Date and Time</h5>
                 <div class="col-md-6">
                     <label for="date">Date of Trip:</label>
-                    <input type="hidden" class="form-control" id="status" name="status" value="1" required >
                     <input type="date" class="form-control" id="date_departure" name="date_departure" required>
                   </div>
                   <div class="col-md-6">
@@ -200,30 +193,30 @@ if(isset($_POST['submit'])) {
                   <div class="form-check">
                       <input class="form-check-input" type="checkbox" value="bus_1" name="bus[]" id="bus_1">
                       <label class="form-check-label d-flex" for="bus_1">
-                          BUS 1 -  <div id="availability_bus_1"></div>
+                      Bus 1 -  <div id="availability_bus_1"></div>
                       </label>
                     
                     </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_2" name="bus[]">
+                    <input class="form-check-input" type="checkbox" value="bus_2" name="bus[]" id="bus_2">
                     <label class="form-check-label d-flex" for="bus_2">
-                      BUS 2 - <div id="availability_bus_2"></div>
+                    Bus 2 - <div id="availability_bus_2"></div>
                     </label>
                     
                     </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_3" name="bus[]">
-                    <label class="form-check-label d-flex" for="bus_"3>
-                      BUS 3 - <div id="availability_bus_3"></div>
+                    <input class="form-check-input" type="checkbox" value="bus_3" name="bus[]" id="bus_3">
+                    <label class="form-check-label d-flex" for="bus_3">
+                    Bus 3 - <div id="availability_bus_3"></div>
                     </label>
                     
                     </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_4" name="bus[]">
+                    <input class="form-check-input" type="checkbox" value="bus_4" name="bus[]" id="bus_4">
                     <label class="form-check-label d-flex" for="bus_4">
-                      BUS 4 - <div id="availability_bus_4"></div>
+                    Bus 4 - <div id="availability_bus_4"></div>
                     </label>
                     </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_5" name="bus[]">
+                    <input class="form-check-input" type="checkbox" value="bus_5" name="bus[]" id="bus_5">
                     <label class="form-check-label d-flex" for="bus_5">
-                      BUS 5 - <div class="" id="availability_bus_5"></div>
+                    Bus 5 - <div class="" id="availability_bus_5"></div>
                     </label>
                   </div>
                 </div>
@@ -472,6 +465,9 @@ function updateBusAvailability(busNumber) {
 // Attach listeners for each bus
 attachBusListeners('bus_1');
 attachBusListeners('bus_2');
+attachBusListeners('bus_3');
+attachBusListeners('bus_4');
+attachBusListeners('bus_5');
 // Repeat for other buses
 </script>
 

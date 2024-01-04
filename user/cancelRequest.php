@@ -1,7 +1,19 @@
 <?php
-session_start();
+include '../config/connection.php';
 include '../session1.php';
 
+try {
+
+    $query = "SELECT * FROM `bus` WHERE STATUS = 0";
+
+    $stmtPatient1 = $con->prepare($query);
+    $stmtPatient1->execute();
+
+} catch(PDOException $ex) {
+    echo $ex->getMessage();
+    echo $ex->getTraceAsString();
+    exit;
+}
 
 ?>
 <!DOCTYPE html>
@@ -33,10 +45,10 @@ include '../session1.php';
     <div class="page-header">
         <div class="row align-items-center">
         <div class="col">
-            <h3 class="page-title">Trip Ticket</h3>
+            <h3 class="page-title">Cancelled Ticket</h3>
             <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
-                <li class="breadcrumb-item active">Trip Ticket Request</li>
+                <li class="breadcrumb-item active">Cancelled Ticket</li>
             </ul>
         </div>
         </div>
@@ -46,7 +58,7 @@ include '../session1.php';
             <!-- Default box -->
             <div class="card card-outline card-primary rounded-0 shadow">
                 <div class="card-header d-flex justify-content-between">
-                    <h3 class="card-title">Total Tickets</h3>
+                    <h3 class="card-title">Total Cancelled Tickets</h3>
 
                     <div class="card-tools ">
                         <button type="button" class="btn btn-tool" data-toggle="collapse" data-target="#collapseContent" aria-expanded="true">
@@ -67,51 +79,33 @@ include '../session1.php';
 
                             <thead>
                             <tr>
-                                <!-- <th>No.</th> -->
+                                <th>No.</th>
                                 <!-- <th>Date Filed</th> -->
                                 <th>Department</th>
                                 <th>Departure</th>
                                 <th>Return</th>
                                 <th>Purpose</th>
-                                <th class="text-center">Status</th>
-                                
                             </tr>
                             </thead>
 
                             <tbody>
                             <?php
-                            $servername = "localhost";
-                            $username = "root";
-                            $password = "";
-                            $dbname = "ublc_reservation";
-                            
-                            $conn = mysqli_connect($servername, $username, $password, $dbname);
-                            
-                            if(!$conn){
-                                die("Connection failed"). mysqli_connect_error();
-                            }
-                            // $user = $_SESSION['user'];
-                            
-                            $sql = "SELECT * FROM `bus` WHERE STATUS = 1";
-                            $result = mysqli_query($conn, $sql);
                             $count = 0;
-                            if(mysqli_num_rows($result)>0){
-                                while($row = mysqli_fetch_assoc($result)){
-                                    $dep = $row['department'];
-                                    $departure = $row['date_departure'].' '. date('h:i a',strtotime($row['time_departure']));
-                                    $arrival = $row['exp_arrival'].' '. date('h:i a',strtotime($row['time_arrival']));
-                                    $purp = $row['purpose'];
-                                    $_SESSION['rideReq'] = $count;
-                                    echo "<tr>
-                                    <td>$dep</td>
-                                    <td>$departure</td>
-                                    <td>$arrival</td>
-                                    <td>$purp</td>
-                                    <td><a href='update/cancelTripStatus.php?userId=$row[id]'><button id='statusCancel'  class='btn btn-outline-danger'>Cancel Ticket</button></a> <a href='update/approveTripStatus.php?userId=$row[id]'><button id='statusCancel'  class='btn btn-outline-primary'>Approve Ticket</button></a><td>
-                                    </tr>";
-                                }
+                            while($row =$stmtPatient1->fetch(PDO::FETCH_ASSOC)){
+                                $count++;
+                                ?>
+                                <tr>
+                                    <td><?php echo $count; ?></td>
+                                    <!-- <td><?php //echo $row['date_filed'];?></td> -->
+                                    <td><?php echo $row['department'];?></td>
+                                    <td><?php echo $row['date_departure'].' '. date('h:i a',strtotime($row['time_departure']));?></td>
+                                    <td><?php echo $row['exp_arrival'].' '. date('h:i a',strtotime($row['time_arrival']));?></td>
+                                    <td><?php echo $row['purpose'];?></td>
+
+                                </tr>
+                                <?php
                             }
-                        ?>
+                            ?>
                             </tbody>
                         </table>
                     </div>

@@ -5,7 +5,7 @@ $message = '';
 if(isset($_POST['submit'])) {
     $name = $_POST['name'];
     $department = $_POST['department'];
-    //$passengerName = explode(",", $_POST['pass_name']);
+    $passengerName = explode(",", $_POST['pass_name']);
     $loc = $_POST['location'];
     $DateDeparture = $_POST['date_departure'];
     $TimeDeparture = $_POST['time_departure'];
@@ -14,10 +14,12 @@ if(isset($_POST['submit'])) {
     $Passengers = $_POST['passengers'];
     $Purpose = $_POST['purpose'];
     $DestName = $_POST['destination_name'];
+    $DestName = $_POST['destination_name'];
+    $status = $_POST['status'];
 
     //Selecting Bus
-    $Selectedbus = isset($_POST['bus']) ? $_POST['bus'] : [];
-    $busString = implode(", ", $Selectedbus);
+    $SelectedBus = isset($_POST['bus']) ? $_POST['bus'] : [];
+    $BusString = implode(", ", $SelectedBus);
 
     //Selecting passenger name
     $passengerNames = $_POST['passengerNames']; // This is now an array
@@ -34,8 +36,8 @@ if(isset($_POST['submit'])) {
     move_uploaded_file($_FILES["template_name"]["tmp_name"], $targetFile);
     
     $existingReservations = [];
-    foreach ($Selectedbus as $bus) {
-        $checkQuery = "SELECT COUNT(*) as count FROM bus2
+    foreach ($SelectedBus as $bus) {
+        $checkQuery = "SELECT COUNT(*) as count FROM bus
                       WHERE bus = :bus
                       AND (date_departure <= :exp_arrival AND exp_arrival >= :date_departure)
                       AND (time_departure <= :time_arrival AND time_arrival >= :time_departure)";
@@ -59,17 +61,17 @@ if(isset($_POST['submit'])) {
         // Existing reservation found for one or more buses
         $message = "The selected date range overlaps with an existing reservation for bus(es) " . implode(', ', $existingReservations) . ". Please choose a different date, time, and bus.";
     } else {
-    $stmt = $con->prepare("INSERT INTO bus2 (name, department, pass_name, location, bus,
+    $stmt = $con->prepare("INSERT INTO bus (name, department, pass_name, location, bus,
     date_departure, time_departure, exp_arrival, time_arrival, passengers, purpose, destination_name,
-    file_name) VALUES (:name, :department, :pass_name, :location, :bus,
+    file_name, status) VALUES (:name, :department, :pass_name, :location, :bus,
     :date_departure, :time_departure, :exp_arrival, :time_arrival, :passengers, :purpose, :destination_name,
-    :file_name)");
+    :file_name, :status)");
 
     $stmt->bindParam(':name', $name);
     $stmt->bindParam(':department', $department);
     $stmt->bindParam(':pass_name', $passengerNamesString);
     $stmt->bindParam(':location', $loc);
-    $stmt->bindParam(':bus', $busString);
+    $stmt->bindParam(':bus', $BusString);
     $stmt->bindParam(':date_departure', $DateDeparture);
     $stmt->bindParam(':time_departure', $TimeDeparture);
     $stmt->bindParam(':exp_arrival', $DateArrival);
@@ -78,13 +80,14 @@ if(isset($_POST['submit'])) {
     $stmt->bindParam(':purpose', $Purpose);
     $stmt->bindParam(':destination_name', $DestName);
     $stmt->bindParam(':file_name', $targetFile);
+    $stmt->bindParam(':status', $status);
     
     // Execute the query
     $stmt->execute();
 
     // Redirect to a success page or do something else
     $message = "Reservation successful!";
-    header("Location: ../congratulation.php?goto_page=car1.php&message=$message");
+    header("Location: car1.php");
     exit;
 }
 }
@@ -149,6 +152,7 @@ if(isset($_POST['submit'])) {
                 <h5>Pick a Date and Time</h5>
                 <div class="col-md-6">
                     <label for="date">Date of Trip:</label>
+                    <input type="hidden" id="status" name="status" value="1" />
                     <input type="date" class="form-control" id="date_departure" name="date_departure" required>
                   </div>
                   <div class="col-md-6">
@@ -193,30 +197,30 @@ if(isset($_POST['submit'])) {
                   <div class="form-check">
                       <input class="form-check-input" type="checkbox" value="bus_1" name="bus[]" id="bus_1">
                       <label class="form-check-label d-flex" for="bus_1">
-                      bus 1 -  <div id="availability_bus_1"></div>
+                      Bus 1 -  <div id="availability_bus_1"></div>
                       </label>
                     
                     </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_2" name="bus[]">
+                    <input class="form-check-input" type="checkbox" value="bus_2" name="bus[]" id="bus_2">
                     <label class="form-check-label d-flex" for="bus_2">
-                    bus 2 - <div id="availability_bus_2"></div>
+                    Bus 2 - <div id="availability_bus_2"></div>
                     </label>
                     
                     </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_3" name="bus[]">
+                    <input class="form-check-input" type="checkbox" value="bus_3" name="bus[]" id="bus_3">
                     <label class="form-check-label d-flex" for="bus_3">
-                    bus 3 - <div id="availability_bus_3"></div>
+                    Bus 3 - <div id="availability_bus_3"></div>
                     </label>
                     
                     </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_4" name="bus[]">
+                    <input class="form-check-input" type="checkbox" value="bus_4" name="bus[]" id="bus_4">
                     <label class="form-check-label d-flex" for="bus_4">
-                    bus 4 - <div id="availability_bus_4"></div>
+                    Bus 4 - <div id="availability_bus_4"></div>
                     </label>
                     </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_5" name="bus[]">
+                    <input class="form-check-input" type="checkbox" value="bus_5" name="bus[]" id="bus_5">
                     <label class="form-check-label d-flex" for="bus_5">
-                    bus 5 - <div class="" id="availability_bus_5"></div>
+                    Bus 5 - <div class="" id="availability_bus_5"></div>
                     </label>
                   </div>
                 </div>
@@ -299,7 +303,7 @@ function deleteSelected() {
     }
 }
 
-function updatebusAvailability(busNumber) {
+function updateBusAvailability(busNumber) {
         // Get selected date and time
         const dateDeparture = document.getElementById('date_departure').value;
         const timeDeparture = document.getElementById('time_departure').value;
@@ -326,145 +330,148 @@ function updatebusAvailability(busNumber) {
 
     // Attach event listeners to update availability on date and time change
     document.getElementById('date_departure').addEventListener('change', function () {
-        updatebusAvailability('bus_1');
+        updateBusAvailability('bus_1');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('time_departure').addEventListener('change', function () {
-        updatebusAvailability('bus_1');
+        updateBusAvailability('bus_1');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('exp_arrival').addEventListener('change', function () {
-        updatebusAvailability('bus_1');
+        updateBusAvailability('bus_1');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('time_arrival').addEventListener('change', function () {
-        updatebusAvailability('bus_1');
+        updateBusAvailability('bus_1');
         // Repeat similar lines for other buses
     });
 
     // Initial availability check on page load
     window.addEventListener('load', function () {
-        updatebusAvailability('bus_1');
+        updateBusAvailability('bus_1');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('date_departure').addEventListener('change', function () {
-        updatebusAvailability('bus_2');
+        updateBusAvailability('bus_2');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('time_departure').addEventListener('change', function () {
-        updatebusAvailability('bus_2');
+        updateBusAvailability('bus_2');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('exp_arrival').addEventListener('change', function () {
-        updatebusAvailability('bus_2');
+        updateBusAvailability('bus_2');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('time_arrival').addEventListener('change', function () {
-        updatebusAvailability('bus_2');
+        updateBusAvailability('bus_2');
         // Repeat similar lines for other buses
     });
 
     // Initial availability check on page load
     window.addEventListener('load', function () {
-        updatebusAvailability('bus_2');
+        updateBusAvailability('bus_2');
         // Repeat similar lines for other buses
     });
     document.getElementById('date_departure').addEventListener('change', function () {
-        updatebusAvailability('bus_3');
+        updateBusAvailability('bus_3');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('time_departure').addEventListener('change', function () {
-        updatebusAvailability('bus_3');
+        updateBusAvailability('bus_3');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('exp_arrival').addEventListener('change', function () {
-        updatebusAvailability('bus_3');
+        updateBusAvailability('bus_3');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('time_arrival').addEventListener('change', function () {
-        updatebusAvailability('bus_3');
+        updateBusAvailability('bus_3');
         // Repeat similar lines for other buses
     });
 
     // Initial availability check on page load
     window.addEventListener('load', function () {
-        updatebusAvailability('bus_3');
+        updateBusAvailability('bus_3');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('date_departure').addEventListener('change', function () {
-        updatebusAvailability('bus_4');
+        updateBusAvailability('bus_4');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('time_departure').addEventListener('change', function () {
-        updatebusAvailability('bus_4');
+        updateBusAvailability('bus_4');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('exp_arrival').addEventListener('change', function () {
-        updatebusAvailability('bus_4');
+        updateBusAvailability('bus_4');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('time_arrival').addEventListener('change', function () {
-        updatebusAvailability('bus_4');
+        updateBusAvailability('bus_4');
         // Repeat similar lines for other buses
     });
 
     // Initial availability check on page load
     window.addEventListener('load', function () {
-        updatebusAvailability('bus_4');
+        updateBusAvailability('bus_4');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('date_departure').addEventListener('change', function () {
-        updatebusAvailability('bus_5');
+        updateBusAvailability('bus_5');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('time_departure').addEventListener('change', function () {
-        updatebusAvailability('bus_5');
+        updateBusAvailability('bus_5');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('exp_arrival').addEventListener('change', function () {
-        updatebusAvailability('bus_5');
+        updateBusAvailability('bus_5');
         // Repeat similar lines for other buses
     });
 
     document.getElementById('time_arrival').addEventListener('change', function () {
-        updatebusAvailability('bus_5');
+        updateBusAvailability('bus_5');
         // Repeat similar lines for other buses
     });
 
     // Initial availability check on page load
     window.addEventListener('load', function () {
-        updatebusAvailability('bus_5');
+        updateBusAvailability('bus_5');
         // Repeat similar lines for other buses
     });
 
-    function attachbusListeners(busNumber) {
+    function attachBusListeners(busNumber) {
     document.getElementById('date_departure').addEventListener('change', function () {
-        updatebusAvailability(busNumber);
+        updateBusAvailability(busNumber);
     });
 
     // Repeat for other events and buses
 }
 
 // Attach listeners for each bus
-attachbusListeners('bus_1');
-attachbusListeners('bus_2');
+attachBusListeners('bus_1');
+attachBusListeners('bus_2');
+attachBusListeners('bus_3');
+attachBusListeners('bus_4');
+attachBusListeners('bus_5');
 // Repeat for other buses
 </script>
 

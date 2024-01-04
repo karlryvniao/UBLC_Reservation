@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style/bootstrap-5.3.2-dist/css/bootstrap.css">
+  <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
+  <title>Document</title>
+</head>
+<body>
+  <section class="content">
+    <!-- Default box -->
+    <div class="card card-outline card-primary rounded-0 shadow">
+        <div class="card-header">
+            <h3 class="card-title">Total Patients</h3>
+
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row table-responsive">
+                <table id="all_patients"
+                       class="table table-striped dataTable table-bordered dtr-inline"
+                       role="grid" aria-describedby="all_patients_info">
+
+                    <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Patient Name</th>
+                        <th>Address</th>
+                        <th>Course</th>
+                        <th>Date Time</th>
+                        <th>Phone Number</th>
+                        <th>Gender</th>
+                        <th>Complaints</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <?php
+                    $count = 0;
+                    while($row =$stmtPatient1->fetch(PDO::FETCH_ASSOC)){
+                        $count++;
+                        ?>
+                        <tr>
+                            <td><?php echo $count; ?></td>
+                            <td><?php echo $row['patient_name'];?></td>
+                            <td><?php echo $row['address'];?></td>
+                            <td><?php echo $row['course'];?></td>
+                            <td><?php echo $row['date_of_birth'] .' '. date('h:i a',strtotime($row['todays_time']));?></td>
+                            <td><?php echo $row['phone_number'];?></td>
+                            <td><?php echo $row['gender'];?></td>
+                            <td><?php echo $row['complaint'];?></td>
+                            <td style="display: flex;">
+                                <a href="update_patient.php?id=<?php echo $row['id'];?>" class = "btn btn-primary btn-sm btn-flat">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                            </td>
+
+                        </tr>
+                        <?php
+                    }
+                    ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- /.card-footer-->
+    </div>
+    <!-- /.card -->
+
+
+</section>
+<script>
+        $(".hamburger").click(function(){
+    $(".wrapper").toggleClass("collapse");
+});
+</script>
+</body>
+</html>

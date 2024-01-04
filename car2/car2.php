@@ -149,6 +149,7 @@ if(isset($_POST['submit'])) {
                 <h5>Pick a Date and Time</h5>
                 <div class="col-md-6">
                     <label for="date">Date of Trip:</label>
+                    
                     <input type="date" class="form-control" id="date_departure" name="date_departure" required>
                   </div>
                   <div class="col-md-6">
