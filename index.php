@@ -36,16 +36,6 @@
 		           class="form-control" 
 		           id="password">
 		  </div>
-		  <div class="mb-1">
-		    <label class="form-label">Role:</label>
-		  </div>
-		  <select class="form-select mb-3"
-		          name="role" 
-		          aria-label="Default select example">
-			  <option selected value="user">User</option>
-			  <option value="admin">Admin</option>
-		  </select>
-		 
 		  <button type="submit" 
 		          class="btn btn-primary">LOGIN</button>
 		</form>

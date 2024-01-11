@@ -2,79 +2,78 @@
 include '../config/connection.php';
 include '../session1.php';
 
+$user_id = $_SESSION['id'];
+// date_default_timezone_set('Asia/Manila');
+// $date = date('Y-m-d');
 
-date_default_timezone_set('Asia/Manila');
-$date = date('Y-m-d');
+// $year =  date('Y');
+// $month =  date('m');
 
-$year =  date('Y');
-$month =  date('m');
+// $queryToday = "SELECT count(*) as `today` 
+//   from `bus` 
+//   where `date_departure` = '$date';";
 
-$queryToday = "SELECT count(*) as `today` 
-  from `bus` 
-  where `date_departure` = '$date';";
+// $queryWeek = "SELECT count(*) as `week` 
+//   from `bus` 
+//   where YEARWEEK(`date_departure`) = YEARWEEK('$date');";
 
-$queryWeek = "SELECT count(*) as `week` 
-  from `bus` 
-  where YEARWEEK(`date_departure`) = YEARWEEK('$date');";
+// $queryYear = "SELECT count(*) as `year` 
+//   from `bus` 
+//   where YEAR(`date_departure`) = YEAR('$date');";
 
-$queryYear = "SELECT count(*) as `year` 
-  from `bus` 
-  where YEAR(`date_departure`) = YEAR('$date');";
-
-$queryMonth = "SELECT count(*) as `month` 
-  from `bus` 
-  where YEAR(`date_departure`) = $year and 
-  MONTH(`date_departure`) = $month;";
+// $queryMonth = "SELECT count(*) as `month` 
+//   from `bus` 
+//   where YEAR(`date_departure`) = $year and 
+//   MONTH(`date_departure`) = $month;";
 
 $todaysCount = 0;
 $currentWeekCount = 0;
 $currentMonthCount = 0;
 $currentYearCount = 0;
+$reservation_sql = "SELECT * FROM user_reservation_vehicle WHERE user_id = '$user_id'";
+$reservation_result = $conn->query($reservation_sql);
+$reservations = $reservation_result->fetch_all(MYSQLI_ASSOC);
+
+// try {
+
+//     $stmtToday = $con->prepare($queryToday);
+//     $stmtToday->execute();
+//     $r = $stmtToday->fetch(PDO::FETCH_ASSOC);
+//     $todaysCount = $r['today'];
+
+//     $stmtWeek = $con->prepare($queryWeek);
+//     $stmtWeek->execute();
+//     $r = $stmtWeek->fetch(PDO::FETCH_ASSOC);
+//     $currentWeekCount = $r['week'];
+
+//     $stmtYear = $con->prepare($queryYear);
+//     $stmtYear->execute();
+//     $r = $stmtYear->fetch(PDO::FETCH_ASSOC);
+//     $currentYearCount = $r['year'];
+
+//     $stmtMonth = $con->prepare($queryMonth);
+//     $stmtMonth->execute();
+//     $r = $stmtMonth->fetch(PDO::FETCH_ASSOC);
+//     $currentMonthCount = $r['month'];
+
+// } catch(PDOException $ex) {
+//     echo $ex->getMessage();
+//     echo $ex->getTraceAsString();
+//     exit;
+// }
 
 
-try {
-
-    $stmtToday = $con->prepare($queryToday);
-    $stmtToday->execute();
-    $r = $stmtToday->fetch(PDO::FETCH_ASSOC);
-    $todaysCount = $r['today'];
-
-    $stmtWeek = $con->prepare($queryWeek);
-    $stmtWeek->execute();
-    $r = $stmtWeek->fetch(PDO::FETCH_ASSOC);
-    $currentWeekCount = $r['week'];
-
-    $stmtYear = $con->prepare($queryYear);
-    $stmtYear->execute();
-    $r = $stmtYear->fetch(PDO::FETCH_ASSOC);
-    $currentYearCount = $r['year'];
-
-    $stmtMonth = $con->prepare($queryMonth);
-    $stmtMonth->execute();
-    $r = $stmtMonth->fetch(PDO::FETCH_ASSOC);
-    $currentMonthCount = $r['month'];
-
-} catch(PDOException $ex) {
-    echo $ex->getMessage();
-    echo $ex->getTraceAsString();
-    exit;
-}
 
 
-$userID = 1; // Replace with the actual user ID (you may get it from the user login)
+// if ($result->num_rows > 0) {
+//     $tickets = array();
 
-$sql = "SELECT * FROM bus WHERE userid = $userID";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-    $tickets = array();
-
-    while($row = $result->fetch_assoc()) {
-        $tickets[] = $row;
-    }
-} else {
-    $tickets = [];
-}
+//     while($row = $result->fetch_assoc()) {
+//         $tickets[] = $row;
+//     }
+// } else {
+//     $tickets = [];
+// }
 
 $conn->close();
 
@@ -105,6 +104,8 @@ function getStatusClass($status) {
             return '';
     }
 }
+
+
 
 ?>
 
@@ -226,18 +227,22 @@ function getStatusClass($status) {
         <div class="container mt-5">
         <h2>Trip Ticket Dashboard</h2>
         <div id="tripTicketList">
-            <?php
-            if (!empty($tickets)) {
-                echo "<ul class='list-group'>";
-                foreach ($tickets as $ticket) {
-                    $statusClass = getStatusClass($ticket['status']);
-                    echo "<li class='list-group-item $statusClass'>{$ticket['ticket_id']} - " . getStatusText($ticket['status']) . "</li>";
-                }
-                echo "</ul>";
-            } else {
-                echo "<p>No trip tickets found.</p>";
-            }
-            ?>
+            <ul>
+                <?php foreach($reservations as $reservation): ?>
+                    <li class="border">
+                        <div>
+                            <span style='font-weight:bold'>Title : <?= $reservation['title']?> </span>
+
+                        </div>
+                        <div>
+                            <p>Departure : <?= $reservation['departure'] ?></p>
+                            <p>Arrival : <?= $reservation['arrival'] ?></p>
+                        </div>
+                    </li>
+                <?php endforeach ?>
+
+            </ul>
+
         </div>
     </div>
         </section>

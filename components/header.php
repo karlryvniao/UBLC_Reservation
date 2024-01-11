@@ -19,13 +19,13 @@
   <div class="mx-auto">
     <ul class="navbar-nav">
       <li class="nav-item active">
-        <a class="nav-link" href="/UBLC-Reservation/home.php">Home</a>
+        <a class="nav-link" href="/UBLC_Reservation/home.php">Home</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="#">About</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/UBLC-Reservation/contact.php">Contact</a>
+        <a class="nav-link" href="/UBLC_Reservation/contact.php">Contact</a>
       </li>
     </ul>
   </div>

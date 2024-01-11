@@ -1,95 +1,140 @@
 <?php
 session_start();
 include '../session1.php';
-$user = $_SESSION['user'];
-if(isset($_SESSION['submit'])) {
-  $name = $_SESSION['name'];
-  $department = $_SESSION['department'];
-  $passengerName = explode(",", $_SESSION['pass_name']);
-  $loc = $_SESSION['location'];
-  $DateDeparture = $_SESSION['date_departure'];
-  $TimeDeparture = $_SESSION['time_departure'];
-  $DateArrival = $_SESSION['exp_arrival'];
-  $TimeReturn = $_SESSION['time_arrival'];
-  $Passengers = $_SESSION['passengers'];
-  $Purpose = $_SESSION['purpose'];
-  $DestName = $_SESSION['destination_name'];
-  $DestName = $_SESSION['destination_name'];
-  $status = $_SESSION['status'];
+$user = $_SESSION['id'];
 
-  //Selecting Bus
-  $SelectedBus = isset($_SESSION['bus']) ? $_SESSION['bus'] : [];
-  $BusString = implode(", ", $SelectedBus);
 
-  //Selecting passenger name
-  $passengerNames = $_SESSION['passengerNames']; // This is now an array
 
-  // Assuming you want to store passenger names as a comma-separated string
-  $passengerNamesString = implode(',', $passengerNames);
+$ublc_department_sql = "SELECT * FROM ublc_department";
+$ublc_department_result = $conn->query($ublc_department_sql);
 
-  // File handling (assuming 'template_name' is the name attribute of the file input)
-  $approvalFile = $_FILES["template_name"]["name"];
-  $uploadDir = "../approval_file/"; // Specify the directory where you want to store uploaded files
-  $targetFile = $uploadDir . basename($_FILES["template_name"]["name"]);
+$location_area_types_sql = "SELECT * FROM location_area_types";
+$location_area_types_result = $conn->query($location_area_types_sql);
 
- // Move the uploaded file to the specified directory
-  move_uploaded_file($_FILES["template_name"]["tmp_name"], $targetFile);
-  
-  $existingReservations = [];
-  foreach ($SelectedBus as $bus) {
-      $checkQuery = "SELECT COUNT(*) as count FROM bus
-                    WHERE bus = :bus
-                    AND (date_departure <= :exp_arrival AND exp_arrival >= :date_departure)
-                    AND (time_departure <= :time_arrival AND time_arrival >= :time_departure)";
-      
-      $checkStmt = $con->prepare($checkQuery);
-      $checkStmt->bindParam(':bus', $bus);
-      $checkStmt->bindParam(':date_departure', $DateDeparture);
-      $checkStmt->bindParam(':time_departure', $TimeDeparture);
-      $checkStmt->bindParam(':exp_arrival', $DateArrival);
-      $checkStmt->bindParam(':time_arrival', $TimeReturn);
-      $checkStmt->execute();
-      $result = $checkStmt->fetch(PDO::FETCH_ASSOC);
+$vehicle_sql = "SELECT * FROM vehicle";
+$vehicle_result = $conn->query($vehicle_sql);
 
-      if ($result['count'] > 0) {
-          // Existing reservation found for the current bus
-          $existingReservations[] = $bus;
-      }
+$errors = [];
+
+
+if(isset($_POST['submit'])) {
+  if ($other_department == '' && $location == ''){
+    $insert_sql = "INSERT INTO user_reservation_vehicle(user_id, title, departure, arrival, purpose_description, no_passengers, department_id, other_department, location_area, location)
+      VALUES (
+       ?, ?, ? , ? , ?, ?, ?, NULL, ?, NULL
+      )";
   }
 
-  if (!empty($existingReservations)) {
-      // Existing reservation found for one or more buses
-      $message = "The selected date range overlaps with an existing reservation for bus(es) " . implode(', ', $existingReservations) . ". Please choose a different date, time, and bus.";
-  } else {
-  $stmt = $con->prepare("INSERT INTO bus (name, department, pass_name, location, bus,
-  date_departure, time_departure, exp_arrival, time_arrival, passengers, purpose, destination_name,
-  file_name, status) VALUES (:name, :department, :pass_name, :location, :bus,
-  :date_departure, :time_departure, :exp_arrival, :time_arrival, :passengers, :purpose, :destination_name,
-  :file_name, :status)");
+  elseif($other_department == ''){
+    $insert_sql = "INSERT INTO user_reservation_vehicle(user_id, title, departure, arrival, purpose_description, no_passengers, department_id, other_department, location_area, location)
+      VALUES (
+       ?, ?, ? , ? , ?, ?, ?, NULL, ?, ?
+      )";
+  }
 
-  $stmt->bindParam(':name', $name);
-  $stmt->bindParam(':department', $department);
-  $stmt->bindParam(':pass_name', $passengerNamesString);
-  $stmt->bindParam(':location', $loc);
-  $stmt->bindParam(':bus', $BusString);
-  $stmt->bindParam(':date_departure', $DateDeparture);
-  $stmt->bindParam(':time_departure', $TimeDeparture);
-  $stmt->bindParam(':exp_arrival', $DateArrival);
-  $stmt->bindParam(':time_arrival', $TimeReturn);
-  $stmt->bindParam(':passengers', $Passengers);
-  $stmt->bindParam(':purpose', $Purpose);
-  $stmt->bindParam(':destination_name', $DestName);
-  $stmt->bindParam(':file_name', $targetFile);
-  $stmt->bindParam(':status', $status);
-  
-  // Execute the query
-  $stmt->execute();
+  elseif($location == ''){
+    $insert_sql = "INSERT INTO user_reservation_vehicle(user_id, title ,departure, arrival, purpose_description, no_passengers, department_id, other_department, location_area, location)
+      VALUES (
+       ?, ? , ? , ? , ?, ?, ?, ? , ?, NULL
+      )";
+  }
+  try{
+      $conn->begin_transaction(); 
+      $stmt = $conn->prepare($insert_sql);
+      if ($other_department == '' && $location == ''){
+        $stmt->bind_param("issssiii", $user, $title , $departure_datetime, $arrival_datetime, $purpose, $no_passengers, $department_id, $location_area_type);
+      }
 
+
+      elseif($location == ''){
+        $stmt->bind_param("issssiiis", $user, $title , $departure_datetime, $arrival_datetime, $purpose, $no_passengers, $department_id, $location_area_type, $location);
+      }
+      elseif($other_department == ''){
+        $stmt->bind_param("issssiisi", $user, $title , $departure_datetime, $arrival_datetime, $purpose, $no_passengers, $department_id, $other_department ,$location_area_type);
+      }
+      $title = $_POST['title'];
+      $date_departure = $_POST['date_departure'];
+      $time_departure = $_POST['time_departure'];
+      $date_arrival = $_POST['date_arrival'];
+      $time_arrival = $_POST['time_arrival'];
+      $purpose = $_POST['purpose'];
+      $no_passengers = $_POST['no-passengers'];
+      $department_id = $_POST['department'];
+      $other_department = $_POST['other-department'] ?? '' ;
+      $location_area_type = $_POST['location-area-type'];
+      $location = $_POST['location'] ?? '' ; //When outside batangas
+      $vehicles = $_POST['vehicle'];
+      // $destination_name = $_POST['destination_name'];
+      
+      if($title == ''){
+        $errors['title'] = 'Please provide a title of travel';
+      }
+      if($date_departure == ''){
+        $errors['date_departure'] = 'Please provide a date of departure.';
+      }
+      if($time_departure == ''){
+        $errors['time_departure'] = 'Please provide a time of departure.';
+      }
+      if($date_arrival == ''){
+        $errors['date_arrival'] = 'Please provide a date of arrival.';
+      }
+      if($time_arrival == ''){
+        $errors['time_arrival'] = 'Please provide a time of arrival.';
+      }
+      if($purpose == ''){
+        $errors['purpose'] = 'Please provide a purpose of travel.';
+      }
+      if($no_passengers == '' or $no_passengers <= 1){
+        $errors['no-passengers'] = 'Please provide the number of passengers. Minimum 1';
+      }
+      if($department_id == ''){
+        $errors['department'] = 'Please select a department';
+      }
+      //Also check if the user choose the others choice.
+      if(empty($vehicles)){
+        $errors['vehicles'] = 'Please choose atleast one vehicle';
+      }
+
+      // $sql = "SELECT A.id FROM vehicle as A WHERE A.id NOT IN(SELECT DISTINCT B.vehicle_id FROM user_reservation_vehicle as A
+      // JOIN  reserved_vehicles as B ON B.reservation_id = A.id
+      // WHERE A.departure <= '$arrival_datetime' AND A.arrival >= '$departure_datetime')";
+
+      // $sql_result = $conn->query($sql);
+      // $query_result = $sql_result->fetch_all(MYSQLI_ASSOC);
+
+      
+      if(!empty($errors)){
+        throw new Exception("The form is invalid. Please check the fields if correct.");
+      }
+      
+      $departure_datetime = join(" ",[$date_departure, $time_departure .":00"]);
+      $arrival_datetime = join(" ",[$date_arrival, $time_arrival . ":00"]);
+
+      $stmt->execute();
+
+      $reservation_id = $conn->insert_id;
+
+      $vehicle_reserved_stmt = $conn->prepare(
+      "INSERT INTO reserved_vehicles(reservation_id, vehicle_id)
+      VALUES (?,?)");
+    foreach( $vehicles as $vehicle_id){
+      $vehicle_reserved_stmt->bind_param("ii", $reservation_id, $vehicle_id);
+      $vehicle_reserved_stmt->execute();
+    }
+    
+
+    $conn->commit(); 
+  }catch(mysqli_sql_exception $exception) { 
+    $conn->rollback(); 
+    $message = "An error occured. Failed to make the reservation";
+    print_r($exception);
+  }
+  catch (Exception $e){
+    $message = $e->getMessage();
+  }
   // Redirect to a success page or do something else
-  $message = "Reservation successful!";
-  header("Location: car1.php");
-  exit;
-}
+  // $message = "Reservation successful!";
+  // header("Location: car1.php");
 }
 ?>
 <!DOCTYPE html>
@@ -132,7 +177,6 @@ if(isset($_SESSION['submit'])) {
 
 
         <section class="content">
-
         <div class="container-fluid">
 
         <div class="card card-outline card-primary rounded-0 shadow">
@@ -149,101 +193,141 @@ if(isset($_SESSION['submit'])) {
             <div class="card-body">
 
             <div class="col-12">
-                <h2>Form</h2>
                 <form method="post" enctype="multipart/form-data" class="row g-3">
                     <!---Reservation Time-->
                 <h5>Pick a Date and Time</h5>
-                <div class="col-md-6">
-                    <label for="date">Date of Trip:</label>
-                    <input type="hidden" id="status" name="status" value="1" />
-                    <input type="date" class="form-control" id="date_departure" name="date_departure" required>
+                <div class="col-md-6 form-group">
+                  <label for="date">Date of Trip:</label>
+                  <input type="date" class="form-control" id="date_departure" name="date_departure" >
+                  <?php if(isset($errors['date_departure'])) : ?>
+                    <span class="help-block text-danger">
+                    <?= $errors['date_departure'] ?>
+                    </span>
+                  <?php endif?>
                   </div>
                   <div class="col-md-6">
                     <label for="departureTime">Departure Time:</label>
-                    <input type="time" class="form-control" id="time_departure" name="time_departure" required>
+                    <input type="time" class="form-control" id="time_departure" name="time_departure" >
+                    <?php if(isset($errors['time_departure'])) : ?>
+                      <span class="help-block text-danger">
+                      <?= $errors['time_departure'] ?>
+                      </span>
+                    <?php endif?>
                   </div>
                   <div class="col-md-6">
                     <label for="returningDate">Returning Date:</label>
-                    <input type="date" class="form-control" id="exp_arrival" name="exp_arrival" required>
+                    <input type="date" class="form-control" id="date_arrival" name="date_arrival" >
+                    <?php if(isset($errors['date_arrival'])) : ?>
+                      <span class="help-block text-danger">
+                        <?= $errors['date_arrival'] ?>
+                      </span>
+                    <?php endif?>
                   </div>
                   <div class="col-md-6">
                     <label for="departureTime">Arrival Time:</label>
-                    <input type="time" class="form-control" id="time_arrival" name="time_arrival" required>
-                  </div><br><br><br><br><hr>
-
-                  <div class="col-md-6">
-                  <label for="inputState" class="form-label">Purpose</label>
-                  <select id="purpose" name="purpose" class="form-select">
-                      <option selected>Choose...</option>
-                      <option>Test</option>
-                      <option>Test1</option>
-                      </select>
+                    <input type="time" class="form-control" id="time_arrival" name="time_arrival" >
+                    <?php if(isset($errors['time_arrival'])) : ?>
+                      <span class="help-block text-danger">
+                      <?= $errors['time_arrival'] ?>
+                    </span>
+                  <?php endif?>
+                  
                   </div>
-                <div class="col-md-6">
+                  <div class="col-md-6 form-group">
+                    <label>
+                      Title
+                    </label>
+                    <input type="text" name="title" class="form-control">
+                    <?php if(isset($errors['title'])) : ?>
+                      <span class="help-block text-danger">
+                      <?= $errors['title'] ?>
+                    </span>
+                    <?php endif?>
+                  </div>
+                  <br><br><br><br><hr>
+
+                <div class="col-md-6 form-group">
+                  <label for="inputState" class="form-label">Travel Purpose</label>
+                  <textarea 
+                    class="form-control" 
+                    id="purpose-id" 
+                    name="purpose" 
+                    rows="3"
+                    placeholder="Description here..."
+                  ></textarea>
+                  <?php if(isset($errors['purpose'])) : ?>
+                      <span class="help-block text-danger">
+                      <?= $errors['purpose'] ?>
+                    </span>
+                  <?php endif?>
+                </div>
+
+                <!-- <div class="col-md-6">
                     <label class="form-label">Destination name</label>
                     <input type="text" class="form-control" id="destination_name" name="destination_name">
                 </div>
-                  
+                   -->
                 <br><br><br><br><hr>
                 
                   <h5>Information</h5>
                   <div class="col-md-6">
                     <label class="form-label">Number of Passengers:</label>
-                    <input type="number" class="form-control" id="passengers" name="passengers" min="1" required>
+                    <input type="number" class="form-control" id="no-passengers-id" name="no-passengers" min="1" >
+                    <?php if(isset($errors['no-passengers'])) : ?>
+                      <span class="help-block text-danger">
+                      <?= $errors['no-passengers'] ?>
+                    </span>
+                  <?php endif?>
+                  
                   </div>
-                  <div class="col-md-6">
+                  <!-- <div class="col-md-6">
                     <label class="form-label">Name</label>
                     <input type="text" class="form-control" id="name" name="name">
-                  </div>
+                  </div> -->
                   <div class="col-md-6">
                     <label class="form-label">Department</label>
-                    <select id="department" name="department" class="form-select">
-                      <option selected>Choose...</option>
-                      <option>Test</option>
-                      <option>Test1</option>
-                      </select>
+                    <select id="department-id" name="department" class="form-select">
+                      <?php while ($row = $ublc_department_result->fetch_assoc()):?>
+                        <option value="<?=$row['id']?>"><?=ucwords($row["name"])?></option>
+                      <?php endwhile ?>
+                    </select>
+                    <?php if(isset($errors['department'])) : ?>
+                      <span class="help-block text-danger">
+                      <?= $errors['department'] ?>
+                    </span>
+                  <?php endif?>
                   </div>
-                  <div class="col-md-6">
+
+                  <div class="col-md-6 form-group d-none">
+                    <label class="form-label">Other Department</label>
+                    <input class="form-control" id="other-department-id" name="other-department"/>
+                  </div>
+
+                  <div class="col-md-6 form-group">
+                    <label class="form-label">Location Area Type</label>
+                    <select id="location-area-type-id" name="location-area-type" class="form-select">
+                      <?php while($row_ = $location_area_types_result->fetch_assoc()): ?>
+                      <option value="<?= $row_["id"]?>">
+                        <?= ucwords($row_["label"]) ?>
+                      </option>
+                      <?php endwhile?>
+                    </select>
+                  </div>
+                  <div class="col-md-6 form-group d-none">
                     <label class="form-label">Location</label>
-                    <select id="location" name="location" class="form-select">
-                      <option selected>Choose...</option>
-                      <option>Within Batangas City</option>
-                      <option>Outside Batangas City</option>
-                      <option>Outside Lipa City</option>
-                      <option>Inter Campus</option>
-                      </select>
+                    <input class="form-control" id="location-id" name="location"/>
                   </div>
-                  <div class="col-md-6">
-                  <div class="form-check">
-                      <input class="form-check-input" type="checkbox" value="bus_1" name="bus[]" id="bus_1">
-                      <label class="form-check-label d-flex" for="bus_1">
-                      Bus 1 -  <div id="availability_bus_1"></div>
-                      </label>
-                    
-                    </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_2" name="bus[]" id="bus_2">
-                    <label class="form-check-label d-flex" for="bus_2">
-                    Bus 2 - <div id="availability_bus_2"></div>
-                    </label>
-                    
-                    </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_3" name="bus[]" id="bus_3">
-                    <label class="form-check-label d-flex" for="bus_3">
-                    Bus 3 - <div id="availability_bus_3"></div>
-                    </label>
-                    
-                    </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_4" name="bus[]" id="bus_4">
-                    <label class="form-check-label d-flex" for="bus_4">
-                    Bus 4 - <div id="availability_bus_4"></div>
-                    </label>
-                    </div><div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bus_5" name="bus[]" id="bus_5">
-                    <label class="form-check-label d-flex" for="bus_5">
-                    Bus 5 - <div class="" id="availability_bus_5"></div>
-                    </label>
+                  <div class="col-md-6 form-group">
+                    <p>Available Vehicles: </p>
+                    <div id="vehicle-choices" class="">
+                      <p>Please select a departure and arrival date time</p>
+                    </div>
+                    <?php if(isset($errors['vehicles'])) : ?>
+                      <span class="help-block text-danger">
+                      <?= $errors['vehicles'] ?>
+                    </span>
+                  <?php endif?>
                   </div>
-                </div>
                 <div class="col-md-6">
                   <label for="passengerNames">Passengers Names:</label>
                   <input type="text" class="form-control" id="passengerNames" name="passengerNames[]" placeholder="Enter name">
@@ -312,6 +396,108 @@ function deleteSelected() {
         }
     }
 }
+</script>
+<script>
+  //Other option node in Department select box
+  $("#department-id").on("change", function(){
+    const selected = $(this).find(":selected").text();
+    if(selected.toLowerCase() === "others"){
+      $("#other-department-id").parent().removeClass('d-none');
+    }else{
+      $("#other-department-id").parent().addClass('d-none');
+    }
+  });
+  $("#location-area-type-id").on("change", function(){
+    const selected = $(this).find(":selected").text();
+    if(/outside batangas city/i.test(selected)){
+      $("#location-id").parent().removeClass('d-none');
+    }else{
+      $("#location-id").parent().addClass('d-none');
+    }
+  });
+</script>
+<script>
+
+  const dateTimeSchedule = {
+    departure: {
+      date: '',
+      time: ''
+    },
+    arrival: {
+      date:'',
+      time:''
+    },
+    missing : [
+      'departure.date',
+      'departure.time',
+      'arrival.date',
+      'arrival.time'
+    ],
+    checkComplete: function(){
+      return this.missing.length < 1
+    },
+    add: function(type, key, value){
+      this[type][key]= value;
+      this.missing = this.missing.filter((missingTypekey) => {
+        const typeKey = [type, key].join('.')
+        return missingTypekey !== typeKey
+      })
+      if (this.checkComplete()){
+        this.fetchVehicles()
+        return
+      }
+    },
+    fetchVehicles: function(){
+      if (!this.checkComplete()){
+        return
+      }
+      const endpoint = `ajax/vehicles.php?departure_date=${encodeURIComponent(this.departure.date)}&departure_time=${encodeURIComponent(this.departure.time)}&arrival_date=${encodeURIComponent(this.arrival.date)}&arrival_time=${encodeURIComponent(this.arrival.time)}`;
+
+      fetch(endpoint,{
+        method:"GET"
+      })
+      .then((response) => {
+        if (!response.ok){
+          throw Error
+        }
+        return response.json()
+      })
+      .then((data)=> {
+        const {
+          available_vehicles
+        } = data;
+        const vehicleDiv = $("#vehicle-choices");
+        vehicleDiv.empty();
+        vehicleDiv.html(
+          available_vehicles.map(({id, name, max_capacity})=>{
+            return `
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="${id}" name="vehicle[]" for="vehicle-<?= $row['id'] ?>">
+              <label class="form-check-label d-flex" for="vehicle-${id}">
+                ${name}
+                <div class="px-1" id="availability_bus_1">Max Capacity:${max_capacity}</div>
+              </label>
+            </div>
+            `
+          }).join(' ')
+        )
+      }).catch((e) => {
+        alert("An error occured. When fetching available vehicles.")
+      })
+    }
+  }
+  $("#date_departure").on("change", function(){
+    dateTimeSchedule.add("departure","date",$(this).val())
+  });
+  $("#time_departure").on("change", function(){
+    dateTimeSchedule.add("departure","time",$(this).val())
+  });
+  $("#date_arrival").on("change", function(){
+    dateTimeSchedule.add("arrival","date",$(this).val())
+  });
+  $("#time_arrival").on("change", function(){
+    dateTimeSchedule.add("arrival","time",$(this).val())
+  });
 </script>
 </body>
 </html>

@@ -42,7 +42,7 @@
 								<a href="users.php"><i class="fa fa-users"></i> <span>Users</span></a>
 							</li>
 							<li>
-								<a href="/UBLC-Reservation/logout.php"><i class="fa fa-power-off"></i> <span>Logout</span></a>
+								<a href="/UBLC_Reservation/logout.php"><i class="fa fa-power-off"></i> <span>Logout</span></a>
 							</li>
 									
 						</ul>
